@@ -16,6 +16,7 @@ from typing import Any, Dict
 
 import openai
 import tiktoken
+import time
 
 from camel.typing import ModelType
 from chatdev.statistics import prompt_cost
@@ -67,9 +68,19 @@ class OpenAIModel(ModelBackend):
         num_max_token = num_max_token_map[self.model_type.value]
         num_max_completion_tokens = num_max_token - num_prompt_tokens
         self.model_config_dict['max_tokens'] = num_max_completion_tokens
-        response = openai.ChatCompletion.create(*args, **kwargs,
-                                                model=self.model_type.value,
-                                                **self.model_config_dict)
+        retry_count = 0
+        for i in range(1, 5):
+            try:
+                response = openai.ChatCompletion.create(*args, **kwargs,
+                                                    model=self.model_type.value,
+                                                    **self.model_config_dict)
+                if self.model_type.value == "gpt-4":
+                    time.sleep(60) # Cooldown, or limit exception
+                break
+            except Exception as e:
+                log_and_print_online("OpenAI API Error: {}".format(e))
+                time.sleep(60)
+
         cost = prompt_cost(
                 self.model_type.value, 
                 num_prompt_tokens=response["usage"]["prompt_tokens"], 

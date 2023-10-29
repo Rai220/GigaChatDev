@@ -203,15 +203,15 @@ class Phase(ABC):
         messages = "\n\n".join(messages)
 
         if "recruiting" in phase_name:
-            question = """Answer their final discussed conclusion (Yes or No) in the discussion without any other words, e.g., "Yes" """
+            question = """Ответьте на их окончательный обсуждаемый вывод (Yes или No) в обсуждении без каких-либо других слов, например, "Yes" """
         elif phase_name == "DemandAnalysis":
-            question = """Answer their final product modality in the discussion without any other words, e.g., "PowerPoint" """
+            question = """Ответьте на их окончательный продукт модальности в обсуждении без каких-либо других слов, например, "PowerPoint" """
         elif phase_name == "LanguageChoose":
-            question = """Conclude the programming language being discussed for software development, in the format: "*" where '*' represents a programming language." """
+            question = """Заключите обсуждаемый язык программирования для разработки программного обеспечения в формате: "*" где '*' представляет собой язык программирования. """
         elif phase_name == "EnvironmentDoc":
-            question = """According to the codes and file format listed above, write a requirements.txt file to specify the dependencies or packages required for the project to run properly." """
+            question = """Согласно кодам и формату файла, указанным выше, напишите файл requirements.txt, чтобы указать зависимости или пакеты, необходимые для правильной работы проекта."""
         else:
-            raise ValueError(f"Reflection of phase {phase_name}: Not Assigned.")
+            raise ValueError(f"Отражение фазы {phase_name}: Не назначено.")
 
         # Reflections actually is a special phase between CEO and counselor
         # They read the whole chatting history of this phase and give refined conclusion of this phase
