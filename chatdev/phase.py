@@ -342,7 +342,7 @@ class Coding(Phase):
 
     def update_phase_env(self, chat_env):
         gui = "" if not chat_env.config.gui_design \
-            else "The software should be equipped with graphical user interface (GUI) so that user can visually and graphically use it; so you must choose a GUI framework (e.g., in Python, you can implement GUI via tkinter, Pygame, Flexx, PyGUI, etc,)."
+            else "Программное обеспечение должно быть оснащено графическим пользовательским интерфейсом (GUI), чтобы пользователь мог использовать его визуально и графически; поэтому вы должны выбрать фреймворк GUI (например, в Python, вы можете реализовать GUI через tkinter, Pygame, Flexx, PyGUI и т.д.)."
         self.phase_env.update({"task": chat_env.env_dict['task_prompt'],
                                "modality": chat_env.env_dict['modality'],
                                "ideas": chat_env.env_dict['ideas'],
