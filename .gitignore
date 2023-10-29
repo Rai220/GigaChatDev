@@ -8,3 +8,5 @@
 .venv/
 env/
 venv/
+
+json_translator.py

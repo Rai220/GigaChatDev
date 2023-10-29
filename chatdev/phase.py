@@ -40,7 +40,7 @@ class Phase(ABC):
         self.ceo_prompt = role_prompts["Chief Executive Officer"]
         self.counselor_prompt = role_prompts["Counselor"]
         self.max_retries = 3
-        self.reflection_prompt = """Here is a conversation between two roles: {conversations} {question}"""
+        self.reflection_prompt = """Вот обсуждение между двумя ролями: {conversations} {question}"""
         self.model_type = model_type
         self.log_filepath = log_filepath
 

@@ -4,6 +4,7 @@ Flask-SocketIO==5.3.4
 importlib-metadata==6.8.0
 numpy==1.24.3
 openai==0.27.8
+gigachat==>0.1.4
 regex==2023.6.3
 requests==2.31.0
 tenacity==8.2.2
