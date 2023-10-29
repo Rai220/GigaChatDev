@@ -50,5 +50,5 @@ class Application(tk.Frame):
             self.entry.insert(tk.END, "Ошибка в выражении")
 class Button(tk.Button):
     def __init__(self, master=None, text=None, color=None, command=None):
-        super().__init__(master, text=text, bg=color, command=command)
+        super().__init__(master, text=text, bg=color, fg=color, command=command)
         self.grid()
