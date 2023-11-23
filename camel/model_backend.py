@@ -15,8 +15,12 @@ from abc import ABC, abstractmethod
 from typing import Any, Dict
 
 import openai
+import uuid
 import tiktoken
+from langchain.chat_models import GigaChat, ChatOpenAI
+from langchain.schema import HumanMessage, SystemMessage, AIMessage
 import time
+from langchain.adapters.openai import *
 
 from camel.typing import ModelType
 from chatdev.statistics import prompt_cost
@@ -48,7 +52,8 @@ class OpenAIModel(ModelBackend):
         super().__init__()
         self.model_type = model_type
         self.model_config_dict = model_config_dict
-        
+        self.openai = ChatOpenAI(model=self.model_type.value)
+
     def run(self, *args, **kwargs) -> Dict[str, Any]:
         string = "\n".join([message["content"] for message in kwargs["messages"]])
         encoding = tiktoken.encoding_for_model(self.model_type.value)
@@ -64,35 +69,130 @@ class OpenAIModel(ModelBackend):
             "gpt-4": 8192,
             "gpt-4-0613": 8192,
             "gpt-4-32k": 32768,
+            "gpt-4-1106-preview": 4096,
         }
         num_max_token = num_max_token_map[self.model_type.value]
         num_max_completion_tokens = num_max_token - num_prompt_tokens
-        self.model_config_dict['max_tokens'] = num_max_completion_tokens
-        retry_count = 0
-        for i in range(1, 5):
+        self.model_config_dict["max_tokens"] = num_max_completion_tokens
+        for _ in range(1, 5):
             try:
-                response = openai.ChatCompletion.create(*args, **kwargs,
-                                                    model=self.model_type.value,
-                                                    **self.model_config_dict)
+                messages = convert_openai_messages(kwargs["messages"])
+                # response = openai.ChatCompletion.create(
+                #     *args,
+                #     **kwargs,
+                #     model=self.model_type.value,
+                #     **self.model_config_dict
+                # )
+                resp = self.openai(messages)
+                response = {
+                    "id": uuid.uuid4().hex,
+                    "choices": [
+                        {
+                            "message": convert_message_to_dict(resp),
+                            "finish_reason": "stop",
+                        }
+                    ],
+                    "usage": {
+                        "prompt_tokens": 1,
+                        "completion_tokens": 1,
+                        "total_tokens": 1,
+                    },
+                }
+
                 if self.model_type.value == "gpt-4":
-                    time.sleep(60) # Cooldown, or limit exception
+                    time.sleep(60)  # Cooldown, or limit exception
                 break
             except Exception as e:
                 log_and_print_online("OpenAI API Error: {}".format(e))
                 time.sleep(60)
 
         cost = prompt_cost(
-                self.model_type.value, 
-                num_prompt_tokens=response["usage"]["prompt_tokens"], 
-                num_completion_tokens=response["usage"]["completion_tokens"]
+            self.model_type.value,
+            0,  # num_prompt_tokens=response["usage"]["prompt_tokens"],
+            0,  # num_completion_tokens=response["usage"]["completion_tokens"],
         )
 
-        log_and_print_online(
-            "**[OpenAI_Usage_Info Receive]**\nprompt_tokens: {}\ncompletion_tokens: {}\ntotal_tokens: {}\ncost: ${:.6f}\n".format(
-                response["usage"]["prompt_tokens"], response["usage"]["completion_tokens"],
-                response["usage"]["total_tokens"], cost))
+        # log_and_print_online(
+        #     "**[OpenAI_Usage_Info Receive]**\nprompt_tokens: {}\ncompletion_tokens: {}\ntotal_tokens: {}\ncost: ${:.6f}\n".format(
+        #         response["usage"]["prompt_tokens"],
+        #         response["usage"]["completion_tokens"],
+        #         response["usage"]["total_tokens"],
+        #         cost,
+        #     )
+        # )
         if not isinstance(response, Dict):
             raise RuntimeError("Unexpected return from OpenAI API")
+        return response
+
+
+class GigaModel(ModelBackend):
+    r"""GigaChat API in a unified ModelBackend interface."""
+
+    def __init__(self, model_type: ModelType, model_config_dict: Dict) -> None:
+        super().__init__()
+        self.model_type = model_type
+        self.model_config_dict = model_config_dict
+        self.giga = GigaChat(
+            verify_ssl_certs=False,
+            base_url="https://beta.saluteai.sberdevices.ru/v1/",
+            model="GigaChat",
+            timeout=1200,
+        )
+
+    def run(self, *args, **kwargs) -> Dict[str, Any]:
+        args_messages = kwargs["messages"]
+        # string = "\n".join([message["content"] for message in kwargs["messages"]])
+        # encoding = tiktoken.encoding_for_model(self.model_type.value)
+        # num_prompt_tokens = len(encoding.encode(string))
+        # gap_between_send_receive = 15 * len(kwargs["messages"])
+        # num_prompt_tokens += gap_between_send_receive
+
+        # num_max_token_map = {
+        #     "giga": 4096
+        # }
+        # num_max_token = num_max_token_map[self.model_type.value]
+        # num_max_completion_tokens = num_max_token - num_prompt_tokens
+        # self.model_config_dict['max_tokens'] = num_max_completion_tokens
+        # retry_count = 0
+        # for i in range(1, 5):
+        try:
+            # response = openai.ChatCompletion.create(*args, **kwargs,
+            #                                     model=self.model_type.value,
+            #                                     **self.model_config_dict)
+            messages = []
+            for m in args_messages:
+                if m["role"] == "user":
+                    messages.append(HumanMessage(content=m["content"]))
+                elif m["role"] == "system":
+                    messages.append(SystemMessage(content=m["content"]))
+                elif m["role"] == "assistant":
+                    messages.append(AIMessage(content=m["content"]))
+            resp = self.giga(messages)
+            response = {
+                "id": 1,
+                "usage": {},
+                "choices": [
+                    {
+                        "message": {"content": resp.content, "role": "assistant"},
+                        "finish_reason": "stop",
+                    }
+                ],
+            }
+        except Exception as e:
+            log_and_print_online("GigaChat API Error: {}".format(e))
+
+        # cost = prompt_cost(
+        #         self.model_type.value,
+        #         num_prompt_tokens=response["usage"]["prompt_tokens"],
+        #         num_completion_tokens=response["usage"]["completion_tokens"]
+        # )
+
+        # log_and_print_online(
+        #     "**[OpenAI_Usage_Info Receive]**\nprompt_tokens: {}\ncompletion_tokens: {}\ntotal_tokens: {}\ncost: ${:.6f}\n".format(
+        #         response["usage"]["prompt_tokens"], response["usage"]["completion_tokens"],
+        #         response["usage"]["total_tokens"], cost))
+        # if not isinstance(response, Dict):
+        #     raise RuntimeError("Unexpected return from OpenAI API")
         return response
 
 
@@ -109,8 +209,10 @@ class StubModel(ModelBackend):
             id="stub_model_id",
             usage=dict(),
             choices=[
-                dict(finish_reason="stop",
-                     message=dict(content=ARBITRARY_STRING, role="assistant"))
+                dict(
+                    finish_reason="stop",
+                    message=dict(content=ARBITRARY_STRING, role="assistant"),
+                )
             ],
         )
 
@@ -127,12 +229,16 @@ class ModelFactory:
         default_model_type = ModelType.GPT_3_5_TURBO
 
         if model_type in {
-            ModelType.GPT_3_5_TURBO, ModelType.GPT_4, ModelType.GPT_4_32k,
-            None
+            ModelType.GPT_3_5_TURBO,
+            ModelType.GPT_4,
+            ModelType.GPT_4_32k,
+            None,
         }:
             model_class = OpenAIModel
         elif model_type == ModelType.STUB:
             model_class = StubModel
+        elif model_type == ModelType.GIGA:
+            model_class = GigaModel
         else:
             raise ValueError("Unknown model")
 

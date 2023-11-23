@@ -1,0 +1,7 @@
+Dependencies for Colorful Calculator Web Project:
+
+- math.js (version 9.5.1 or later) - A comprehensive mathematics library for JavaScript. It is included in the project via CDN (Content Delivery Network).
+
+CDN URL for math.js: https://cdnjs.cloudflare.com/ajax/libs/mathjs/9.5.1/math.min.js
+
+Внимание: Все остальные зависимости (HTML, CSS, JavaScript) являются стандартными технологиями, встроенными в браузеры, и не требуют установки дополнительных пакетов.

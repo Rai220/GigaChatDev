@@ -19,6 +19,7 @@ from typing import Any, Callable, List, Optional, Set, TypeVar
 
 import requests
 import tiktoken
+import json
 
 from camel.messages import OpenAIMessage
 from camel.typing import ModelType, TaskType
@@ -76,6 +77,9 @@ def num_tokens_from_messages(
         - https://platform.openai.com/docs/models/gpt-4
         - https://platform.openai.com/docs/models/gpt-3-5
     """
+    if model == ModelType.GIGA:
+        return len(json.dumps(messages, ensure_ascii=False)) / 4.6
+
     try:
         value_for_tiktoken = model.value_for_tiktoken
         encoding = tiktoken.encoding_for_model(value_for_tiktoken)
@@ -113,6 +117,8 @@ def get_model_token_limit(model: ModelType) -> int:
         return 8192
     elif model == ModelType.GPT_4_32k:
         return 32768
+    elif model == ModelType.GIGA:
+        return 16384
     elif model == ModelType.STUB:
         return 4096
     else:
