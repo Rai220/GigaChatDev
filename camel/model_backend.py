@@ -134,8 +134,9 @@ class GigaModel(ModelBackend):
         self.model_config_dict = model_config_dict
         self.giga = GigaChat(
             verify_ssl_certs=False,
-            base_url="https://beta.saluteai.sberdevices.ru/v1/",
-            model="GigaChat",
+            profanity=False,
+            base_url="https://wmapi-ift.saluteai-pd.sberdevices.ru/v1",
+            model="GigaR-29b:1.3.22.4",
             timeout=1200,
         )
 
