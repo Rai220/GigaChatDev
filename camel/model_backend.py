@@ -56,7 +56,8 @@ class OpenAIModel(ModelBackend):
 
     def run(self, *args, **kwargs) -> Dict[str, Any]:
         string = "\n".join([message["content"] for message in kwargs["messages"]])
-        encoding = tiktoken.encoding_for_model(self.model_type.value)
+        # encoding = tiktoken.encoding_for_model(self.model_type.value)
+        encoding = tiktoken.encoding_for_model("cl100k_base")
         num_prompt_tokens = len(encoding.encode(string))
         gap_between_send_receive = 15 * len(kwargs["messages"])
         num_prompt_tokens += gap_between_send_receive
@@ -169,12 +170,16 @@ class GigaModel(ModelBackend):
                 elif m["role"] == "assistant":
                     messages.append(AIMessage(content=m["content"]))
             resp = self.giga(messages)
+
+            # Rename <code> to ``` - ```
+            content = resp.content.replace("<code>{python}", "```python").replace("</code>", "```")
+
             response = {
                 "id": 1,
                 "usage": {},
                 "choices": [
                     {
-                        "message": {"content": resp.content, "role": "assistant"},
+                        "message": {"content": content, "role": "assistant"},
                         "finish_reason": "stop",
                     }
                 ],
@@ -227,7 +232,7 @@ class ModelFactory:
 
     @staticmethod
     def create(model_type: ModelType, model_config_dict: Dict) -> ModelBackend:
-        default_model_type = ModelType.GPT_3_5_TURBO
+        default_model_type = ModelType.GIGA
 
         if model_type in {
             ModelType.GPT_3_5_TURBO,

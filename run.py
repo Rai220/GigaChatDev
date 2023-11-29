@@ -15,6 +15,7 @@ import argparse
 import logging
 import os
 import sys
+import time
 
 from camel.typing import ModelType
 
@@ -71,6 +72,8 @@ parser.add_argument('--model', type=str, default="GPT_3_5_TURBO",
 parser.add_argument('--path', type=str, default="",
                     help="Your file directory, ChatDev will build upon your software in the Incremental mode")
 args = parser.parse_args()
+
+os.environ['LANGCHAIN_PROJECT'] = f'{args.name} {time.time()}'
 
 # Start ChatDev
 
