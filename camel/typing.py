@@ -52,8 +52,8 @@ class ModelType(Enum):
 
     @property
     def value_for_tiktoken(self):
-        #return self.value if self.name != "STUB" else "gpt-3.5-turbo-16k-0613"
-        return "cl100k_base"
+        return self.value if self.name != "STUB" else "gpt-3.5-turbo-16k-0613"
+        # return "cl100k_base"
 
 
 class PhaseType(Enum):

@@ -80,11 +80,11 @@ def num_tokens_from_messages(
     if model == ModelType.GIGA:
         return len(json.dumps(messages, ensure_ascii=False)) / 4.6
 
-    # try:
-    #     value_for_tiktoken = model.value_for_tiktoken
-    #     encoding = tiktoken.encoding_for_model(value_for_tiktoken)
-    # except KeyError:
-    encoding = tiktoken.get_encoding("cl100k_base")
+    try:
+        value_for_tiktoken = model.value_for_tiktoken
+        encoding = tiktoken.encoding_for_model(value_for_tiktoken)
+    except KeyError:
+        encoding = tiktoken.get_encoding("cl100k_base")
 
     if model in {
         ModelType.GPT_3_5_TURBO, ModelType.GPT_4, ModelType.GPT_4_32k,

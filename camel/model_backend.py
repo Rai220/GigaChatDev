@@ -56,8 +56,8 @@ class OpenAIModel(ModelBackend):
 
     def run(self, *args, **kwargs) -> Dict[str, Any]:
         string = "\n".join([message["content"] for message in kwargs["messages"]])
-        # encoding = tiktoken.encoding_for_model(self.model_type.value)
-        encoding = tiktoken.encoding_for_model("cl100k_base")
+        encoding = tiktoken.encoding_for_model(self.model_type.value)
+        # encoding = tiktoken.encoding_for_model("cl100k_base")
         num_prompt_tokens = len(encoding.encode(string))
         gap_between_send_receive = 15 * len(kwargs["messages"])
         num_prompt_tokens += gap_between_send_receive
@@ -136,9 +136,11 @@ class GigaModel(ModelBackend):
         self.giga = GigaChat(
             verify_ssl_certs=False,
             profanity=False,
+            temperature=0.2,
+            max_tokens=1000,
             base_url="https://wmapi-ift.saluteai-pd.sberdevices.ru/v1",
-            model="GigaR-29b:1.3.22.4",
-            timeout=1200,
+            model="GigaR-29b:0.1.23.1",
+            timeout=1300,
         )
 
     def run(self, *args, **kwargs) -> Dict[str, Any]:
