@@ -8,5 +8,6 @@
 .venv/
 env/
 venv/
+WareHouse/*
 
 json_translator.py

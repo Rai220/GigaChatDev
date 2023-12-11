@@ -40,9 +40,12 @@ class Codes:
                 filename = extract_filename_from_line(group1)
                 if "__main__" in code:
                     filename = "main.py"
-                if filename == "":  # post-processing
+                if filename == "" or filename == ".py":  # post-processing
                     filename = extract_filename_from_code(code)
-                assert filename != ""
+                # assert filename != "" and filename != ".py"
+                # TODO: Правда для GigaChat, возожно она всё сломает
+                if filename == ".py" or filename == "":
+                    filename = "main.py"
                 if filename is not None and code is not None and len(filename) > 0 and len(code) > 0:
                     self.codebooks[filename] = self._format_code(code)
 

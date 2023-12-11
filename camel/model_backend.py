@@ -136,11 +136,13 @@ class GigaModel(ModelBackend):
         self.giga = GigaChat(
             verify_ssl_certs=False,
             profanity=False,
-            temperature=0.2,
-            max_tokens=1000,
-            base_url="https://wmapi-ift.saluteai-pd.sberdevices.ru/v1",
-            model="GigaR-29b:0.1.23.1",
+            temperature=1.3,
+            max_tokens=3000,
+            base_url="...",
+            model="...",
             timeout=1300,
+            access_token="",
+            verbose=True
         )
 
     def run(self, *args, **kwargs) -> Dict[str, Any]:
