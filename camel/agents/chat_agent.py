@@ -151,6 +151,11 @@ class ChatAgent(BaseAgent):
             List[ChatMessage]: The updated stored messages.
         """
         self.stored_messages.append(message)
+
+        if len(self.stored_messages) > 1 and self.stored_messages[1].role == 'assistant':
+            mes = self.stored_messages.pop(1)
+            self.stored_messages[0].content += "\n" + mes.content
+
         return self.stored_messages
 
     @retry(wait=wait_exponential(min=5, max=60), stop=stop_after_attempt(5))

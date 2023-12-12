@@ -36,6 +36,8 @@ class Wrapper:
         def wrapper(*args, **kwargs):
             print(f"Calling function: {attr}")
             print(f"Arguments: {args}, {json.dumps(kwargs, ensure_ascii=False)}")
+            if len(kwargs['messages']) > 1 and kwargs['messages'][1]['role'] != 'user':
+                print("ACHTUNG!!!!")
             result = original_func(*args, **kwargs)
             print(f"Response: {json.dumps(result, ensure_ascii=False)}")
             # Пишем в массив json
