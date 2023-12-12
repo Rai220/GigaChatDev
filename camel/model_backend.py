@@ -15,7 +15,7 @@ from abc import ABC, abstractmethod
 from typing import Any, Dict
 
 import openai
-import uuid
+import uuid, os, json
 import tiktoken
 from langchain.chat_models import GigaChat, ChatOpenAI
 from langchain.schema import HumanMessage, SystemMessage, AIMessage
@@ -26,6 +26,29 @@ from camel.typing import ModelType
 from chatdev.statistics import prompt_cost
 from chatdev.utils import log_and_print_online
 
+class Wrapper:
+    def __init__(self, wrapped_class):
+        self.wrapped_class = wrapped_class
+
+    def __getattr__(self, attr):
+        original_func = getattr(self.wrapped_class, attr)
+
+        def wrapper(*args, **kwargs):
+            print(f"Calling function: {attr}")
+            print(f"Arguments: {args}, {kwargs}")
+            result = original_func(*args, **kwargs)
+            print(f"Response: {result}")
+            # Пишем в массив json
+            if attr == "create":
+                with open(f"logs/{os.environ['LANGCHAIN_PROJECT']}.json", "a") as f:
+                    to_write = {"request": kwargs, "response": result}
+                    #f.write(str(json.dumps(kwargs, ensure_ascii=False)) + "\n")
+                    #f.write(str(json.dumps(result, ensure_ascii=False)) + "\n")
+                    # Write beautified json
+                    f.write(str(json.dumps(to_write, ensure_ascii=False, indent=4)) + "\n")
+            return result
+
+        return wrapper
 
 class ModelBackend(ABC):
     r"""Base class for different model backends.
@@ -53,6 +76,7 @@ class OpenAIModel(ModelBackend):
         self.model_type = model_type
         self.model_config_dict = model_config_dict
         self.openai = ChatOpenAI(model=self.model_type.value)
+        self.openai.client = Wrapper(self.openai.client)
 
     def run(self, *args, **kwargs) -> Dict[str, Any]:
         string = "\n".join([message["content"] for message in kwargs["messages"]])
@@ -101,7 +125,7 @@ class OpenAIModel(ModelBackend):
                 }
 
                 if self.model_type.value == "gpt-4":
-                    time.sleep(60)  # Cooldown, or limit exception
+                    time.sleep(10)  # Cooldown, or limit exception
                 break
             except Exception as e:
                 log_and_print_online("OpenAI API Error: {}".format(e))
@@ -138,8 +162,8 @@ class GigaModel(ModelBackend):
             profanity=False,
             temperature=1.3,
             max_tokens=3000,
-            base_url="...",
-            model="...",
+            base_url="http://10.18.144.130:8000",
+            model="GigaR-29b-463k-24-mini-epoch5",
             timeout=1300,
             access_token="",
             verbose=True
