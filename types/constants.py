@@ -1,0 +1,1 @@
+PATH_TO_LOGGER = '/home/ddlatortseva/notebooks/chains/GigaChatDev/types/cur_logger_path.txt'

@@ -12,7 +12,7 @@ from camel.typing import TaskType, ModelType
 from chatdev.chat_env import ChatEnv, ChatEnvConfig
 from chatdev.statistics import get_info
 from chatdev.utils import log_and_print_online, now
-
+from types.constants import PATH_TO_LOGGER
 
 def check_bool(s):
     return s.lower() == "true"
@@ -178,6 +178,9 @@ class ChatChain:
         directory = os.path.join(root, "WareHouse")
         log_filepath = os.path.join(directory,
                                     "{}.log".format("_".join([self.project_name, self.org_name, start_time])))
+        #ПРОСТОЙ ТУПЕЙШИЙ ЛОГГЕР
+        with open(PATH_TO_LOGGER, 'w') as f:
+            print("_".join([self.project_name, self.org_name, start_time]), file=f)
         return start_time, log_filepath
 
     def pre_processing(self):

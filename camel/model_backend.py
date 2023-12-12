@@ -25,7 +25,14 @@ from langchain.adapters.openai import *
 from camel.typing import ModelType
 from chatdev.statistics import prompt_cost
 from chatdev.utils import log_and_print_online
+from types.constants import PATH_TO_LOGGER
 
+import json
+def dump_jsonl(file, data, mode: str = "a") -> None:
+    assert mode in {"w", "a"}, f"Not supported mode for dump_jsonl: {repr(mode)}"
+    with open(file, mode=mode, encoding="utf-8") as fp:
+        for item in data:
+            fp.write(json.dumps(str(item), ensure_ascii=False) + "\n")
 
 class ModelBackend(ABC):
     r"""Base class for different model backends.
@@ -121,6 +128,11 @@ class OpenAIModel(ModelBackend):
         #         cost,
         #     )
         # )
+        d = {'message':messages, 'response':response}
+        #ПРОСТОЙ ТУПЕЙШИЙ ЛОГГЕР
+        with open(PATH_TO_LOGGER, 'a') as f:
+            path = f.readlines()[0]
+        dump_jsonl(f'{path}/custom_log.jsonl', [d])
         if not isinstance(response, Dict):
             raise RuntimeError("Unexpected return from OpenAI API")
         return response
