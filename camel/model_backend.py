@@ -167,13 +167,14 @@ class GigaModel(ModelBackend):
             verify_ssl_certs=False,
             profanity=False,
             temperature=1.3,
-            max_tokens=3000,
-            base_url="http://10.18.144.130:8000",
-            model="GigaR-29b-463k-24-mini-epoch5",
+            max_tokens=6000,
+            base_url="...",
+            model="...",
             timeout=1300,
             access_token="",
             verbose=True
         )
+        # self.giga._client = Wrapper(self.giga._client)
 
     def run(self, *args, **kwargs) -> Dict[str, Any]:
         args_messages = kwargs["messages"]
