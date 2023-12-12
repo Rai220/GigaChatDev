@@ -48,6 +48,8 @@ class Wrapper:
                     to_write["request"]["api-key"] = "sk-..."
                     to_write["response"]["api-key"] = "sk-..."
                     f.write(str(json.dumps(to_write, ensure_ascii=False, indent=4)) + "\n")
+            else:
+                print(f"Unknown function: {attr}")
             return result
 
         return wrapper
@@ -77,7 +79,7 @@ class OpenAIModel(ModelBackend):
         super().__init__()
         self.model_type = model_type
         self.model_config_dict = model_config_dict
-        self.openai = ChatOpenAI(model=self.model_type.value)
+        self.openai = ChatOpenAI(model=self.model_type.value, timeout=600)
         self.openai.client = Wrapper(self.openai.client)
 
     def run(self, *args, **kwargs) -> Dict[str, Any]:
