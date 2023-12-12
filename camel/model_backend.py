@@ -35,16 +35,18 @@ class Wrapper:
 
         def wrapper(*args, **kwargs):
             print(f"Calling function: {attr}")
-            print(f"Arguments: {args}, {kwargs}")
+            print(f"Arguments: {args}, {json.dumps(kwargs, ensure_ascii=False)}")
             result = original_func(*args, **kwargs)
-            print(f"Response: {result}")
+            print(f"Response: {json.dumps(result, ensure_ascii=False)}")
             # Пишем в массив json
             if attr == "create":
-                with open(f"logs/{os.environ['LANGCHAIN_PROJECT']}.json", "a") as f:
+                with open(f"logs/{os.environ['LANGCHAIN_PROJECT']}.json", "a", encoding="utf-8") as f:
                     to_write = {"request": kwargs, "response": result}
                     #f.write(str(json.dumps(kwargs, ensure_ascii=False)) + "\n")
                     #f.write(str(json.dumps(result, ensure_ascii=False)) + "\n")
                     # Write beautified json
+                    to_write["request"]["api-key"] = "sk-..."
+                    to_write["response"]["api-key"] = "sk-..."
                     f.write(str(json.dumps(to_write, ensure_ascii=False, indent=4)) + "\n")
             return result
 
@@ -62,7 +64,7 @@ class ModelBackend(ABC):
             RuntimeError: if the return value from OpenAI API
             is not a dict that is expected.
 
-        Returns:
+        Returns
             Dict[str, Any]: All backends must return a dict in OpenAI format.
         """
         pass

@@ -9,6 +9,6 @@
 env/
 venv/
 WareHouse/*
-logs/*x
+logs/*
 
 json_translator.py
