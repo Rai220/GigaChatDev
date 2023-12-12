@@ -178,6 +178,11 @@ class ChatChain:
         directory = os.path.join(root, "WareHouse")
         log_filepath = os.path.join(directory,
                                     "{}.log".format("_".join([self.project_name, self.org_name, start_time])))
+        
+
+        #ПРОСТОЙ ТУПЕЙШИЙ ЛОГГЕР
+        with open('/home/ddlatortseva/notebooks/chains/cur_path.txt', 'w') as f:
+            print("_".join([self.project_name, self.org_name, start_time]), file=f)
         return start_time, log_filepath
 
     def pre_processing(self):
