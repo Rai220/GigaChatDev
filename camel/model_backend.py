@@ -40,13 +40,13 @@ class Wrapper:
             print(f"Response: {json.dumps(result, ensure_ascii=False)}")
             # Пишем в массив json
             if attr == "create":
-                with open(f"logs/{os.environ['LANGCHAIN_PROJECT']}.json", "a", encoding="utf-8") as f:
+                with open(f"logs/{os.environ['LANGCHAIN_PROJECT']}.jsonl", "a", encoding="utf-8") as f:
                     to_write = {"request": kwargs, "response": result}
                     #f.write(str(json.dumps(kwargs, ensure_ascii=False)) + "\n")
                     #f.write(str(json.dumps(result, ensure_ascii=False)) + "\n")
                     # Write beautified json
-                    to_write["request"]["api-key"] = "sk-..."
-                    to_write["response"]["api-key"] = "sk-..."
+                    to_write["request"]["api_key"] = "sk-..."
+                    to_write["response"]["api_key"] = "sk-..."
                     f.write(str(json.dumps(to_write, ensure_ascii=False, indent=4)) + "\n")
             else:
                 print(f"Unknown function: {attr}")
