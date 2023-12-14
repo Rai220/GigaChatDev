@@ -30,26 +30,40 @@ class Wrapper:
     def __init__(self, wrapped_class):
         self.wrapped_class = wrapped_class
 
+    def has_method(o, name):
+        return 
+
+    def save(self, rq, rsp):
+        if 'json' in rq:
+            rq = rq['json']
+        if callable(getattr(rsp, 'json', None)):
+            rsp = rsp.json()
+
+        with open(f"logs/{os.environ['LANGCHAIN_PROJECT']}.jsonl", "a", encoding="utf-8") as f:
+            to_write = {"request": rq, "response": rsp}
+            to_write["request"]["api_key"] = "sk-..."
+            to_write["response"]["api_key"] = "sk-..."
+            f.write(str(json.dumps(to_write, ensure_ascii=False, indent=4)) + "\n")
+
+
+    def __call__(self, *args, **kwargs):
+        print(self.wrapped_class, ' is being called with ', args, kwargs)
+        result = self.wrapped_class(*args, **kwargs)
+        self.save(args, result)
+        return result
+
+
     def __getattr__(self, attr):
         original_func = getattr(self.wrapped_class, attr)
 
         def wrapper(*args, **kwargs):
-            print(f"Calling function: {attr}")
-            print(f"Arguments: {args}, {json.dumps(kwargs, ensure_ascii=False)}")
-            if len(kwargs['messages']) > 1 and kwargs['messages'][1]['role'] != 'user':
-                print("ACHTUNG!!!!")
+            # print(f"Calling function: {attr}")
+            # print(f"Arguments: {args}, {json.dumps(kwargs, ensure_ascii=False)}")
             result = original_func(*args, **kwargs)
-            print(f"Response: {json.dumps(result, ensure_ascii=False)}")
+            # print(f"Response: {json.dumps(result, ensure_ascii=False)}")
             # Пишем в массив json
-            if attr == "create":
-                with open(f"logs/{os.environ['LANGCHAIN_PROJECT']}.jsonl", "a", encoding="utf-8") as f:
-                    to_write = {"request": kwargs, "response": result}
-                    #f.write(str(json.dumps(kwargs, ensure_ascii=False)) + "\n")
-                    #f.write(str(json.dumps(result, ensure_ascii=False)) + "\n")
-                    # Write beautified json
-                    to_write["request"]["api_key"] = "sk-..."
-                    to_write["response"]["api_key"] = "sk-..."
-                    f.write(str(json.dumps(to_write, ensure_ascii=False, indent=4)) + "\n")
+            if attr == "create" or attr == "request":
+                self.save(kwargs, result)
             else:
                 print(f"Unknown function: {attr}")
             return result
@@ -166,15 +180,13 @@ class GigaModel(ModelBackend):
         self.giga = GigaChat(
             verify_ssl_certs=False,
             profanity=False,
-            temperature=1.3,
+            temperature=1.0,
             max_tokens=6000,
-            base_url="...",
-            model="...",
             timeout=1300,
             access_token="",
             verbose=True
         )
-        # self.giga._client = Wrapper(self.giga._client)
+        self.giga._client._client = Wrapper(self.giga._client._client)
 
     def run(self, *args, **kwargs) -> Dict[str, Any]:
         args_messages = kwargs["messages"]
