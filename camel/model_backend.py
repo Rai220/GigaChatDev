@@ -24,7 +24,7 @@ from langchain.adapters.openai import *
 
 from camel.typing import ModelType
 from chatdev.statistics import prompt_cost
-from chatdev.utils import log_and_print_online
+from chatdev.utils import log_visualize
 
 class Wrapper:
     def __init__(self, wrapped_class):
@@ -298,6 +298,6 @@ class ModelFactory:
         if model_type is None:
             model_type = default_model_type
 
-        # log_and_print_online("Model Type: {}".format(model_type))
+        # log_visualize("Model Type: {}".format(model_type))
         inst = model_class(model_type, model_config_dict)
         return inst
