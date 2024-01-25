@@ -65,7 +65,7 @@ class Phase(ABC):
         """
 
         Args:
-            chat_env: global chatchain environment TODO: only for employee detection, can be deleted
+            chat_env: global chatchain environment
             task_prompt: user query prompt for building the software
             assistant_role_name: who receives the chat
             user_role_name: who starts the chat
@@ -103,6 +103,7 @@ class Phase(ABC):
             task_type=task_type,
             with_task_specify=with_task_specify,
             model_type=model_type,
+            background_prompt=chat_env.config.background_prompt
         )
 
         # log_visualize("System", role_play_session.assistant_sys_msg)
@@ -323,6 +324,7 @@ class LanguageChoose(Phase):
 
     def update_phase_env(self, chat_env):
         self.phase_env.update({"task": chat_env.env_dict['task_prompt'],
+                               "description": chat_env.env_dict['task_description'],
                                "modality": chat_env.env_dict['modality'],
                                "ideas": chat_env.env_dict['ideas']})
 
@@ -344,6 +346,7 @@ class Coding(Phase):
         gui = "" if not chat_env.config.gui_design \
             else "Программное обеспечение должно быть оснащено графическим пользовательским интерфейсом (GUI), чтобы пользователь мог использовать его визуально и графически; поэтому вы должны выбрать фреймворк GUI (например, в Python, вы можете реализовать GUI через tkinter, Pygame, Flexx, PyGUI и т.д.)."
         self.phase_env.update({"task": chat_env.env_dict['task_prompt'],
+                               "description": chat_env.env_dict['task_description'],
                                "modality": chat_env.env_dict['modality'],
                                "ideas": chat_env.env_dict['ideas'],
                                "language": chat_env.env_dict['language'],
@@ -365,6 +368,7 @@ class ArtDesign(Phase):
 
     def update_phase_env(self, chat_env):
         self.phase_env = {"task": chat_env.env_dict['task_prompt'],
+                          "description": chat_env.env_dict['task_description'],
                           "language": chat_env.env_dict['language'],
                           "codes": chat_env.get_codes()}
 

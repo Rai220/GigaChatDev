@@ -14,16 +14,27 @@ from chatdev.documents import Documents
 from chatdev.roster import Roster
 from chatdev.utils import log_visualize
 
+try:
+    from openai.types.chat.chat_completion_message_tool_call import ChatCompletionMessageToolCall
+    from openai.types.chat.chat_completion_message import FunctionCall
+
+    # Legacy for logging support
+    openai_new_api = False  # new openai api version
+except ImportError:
+    openai_new_api = False  # old openai api version
+
 
 class ChatEnvConfig:
     def __init__(self, clear_structure,
                  gui_design,
                  git_management,
-                 incremental_develop):
-        self.clear_structure = clear_structure
-        self.gui_design = gui_design
-        self.git_management = git_management
-        self.incremental_develop = incremental_develop
+                 incremental_develop,
+                 background_prompt):
+        self.clear_structure = clear_structure  # Whether to clear non-software files in the WareHouse and cache files in generated software path
+        self.gui_design = gui_design  # Encourage ChatDev generate software with GUI
+        self.git_management = git_management  # Whether to use git to manage the creation and changes of generated software
+        self.incremental_develop = incremental_develop  # Whether to use incremental develop on an existing project
+        self.background_prompt = background_prompt  # background prompt that will be added to every inquiry to LLM
 
     def __str__(self):
         string = ""
@@ -31,6 +42,7 @@ class ChatEnvConfig:
         string += "ChatEnvConfig.git_management: {}\n".format(self.git_management)
         string += "ChatEnvConfig.gui_design: {}\n".format(self.gui_design)
         string += "ChatEnvConfig.incremental_develop: {}\n".format(self.incremental_develop)
+        string += "ChatEnvConfig.background_prompt: {}\n".format(self.background_prompt)
         return string
 
 
@@ -46,6 +58,7 @@ class ChatEnv:
         self.env_dict = {
             "directory": "",
             "task_prompt": "",
+            "task_description":"",
             "modality": "",
             "ideas": "",
             "language": "",
@@ -73,13 +86,12 @@ class ChatEnv:
             new_directory = "{}.{}".format(directory, time.strftime("%Y%m%d%H%M%S", time.localtime()))
             shutil.copytree(directory, new_directory)
             print("{} Copied to {}".format(directory, new_directory))
-        if self.config.clear_structure:
-            if os.path.exists(self.env_dict['directory']):
-                shutil.rmtree(self.env_dict['directory'])
-                os.mkdir(self.env_dict['directory'])
-                print("{} Created".format(directory))
-            else:
-                os.mkdir(self.env_dict['directory'])
+        if os.path.exists(self.env_dict['directory']):
+            shutil.rmtree(self.env_dict['directory'])
+            os.mkdir(self.env_dict['directory'])
+            print("{} Created".format(directory))
+        else:
+            os.mkdir(self.env_dict['directory'])
 
     def exist_bugs(self) -> tuple[bool, str]:
         directory = self.env_dict['directory']
@@ -216,12 +228,20 @@ class ChatEnv:
                 if desc.endswith(".png"):
                     desc = desc.replace(".png", "")
                 print("{}: {}".format(filename, desc))
-                response = openai.Image.create(
-                    prompt=desc,
-                    n=1,
-                    size="256x256"
-                )
-                image_url = response['data'][0]['url']
+                if openai_new_api:
+                    response = openai.images.generate(
+                        prompt=desc,
+                        n=1,
+                        size="256x256"
+                    )
+                    image_url = response.data[0].url
+                else:
+                    response = openai.Image.create(
+                        prompt=desc,
+                        n=1,
+                        size="256x256"
+                    )
+                    image_url = response['data'][0]['url']
                 download(image_url, filename)
 
     def get_proposed_images_from_message(self, messages):
@@ -258,12 +278,22 @@ class ChatEnv:
                 if desc.endswith(".png"):
                     desc = desc.replace(".png", "")
                 print("{}: {}".format(filename, desc))
-                response = openai.Image.create(
-                    prompt=desc,
-                    n=1,
-                    size="256x256"
-                )
-                image_url = response['data'][0]['url']
+
+                if openai_new_api:
+                    response = openai.images.generate(
+                        prompt=desc,
+                        n=1,
+                        size="256x256"
+                    )
+                    image_url = response.data[0].url
+                else:
+                    response = openai.Image.create(
+                        prompt=desc,
+                        n=1,
+                        size="256x256"
+                    )
+                    image_url = response['data'][0]['url']
+
                 download(image_url, filename)
 
         return images

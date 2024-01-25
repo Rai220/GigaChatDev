@@ -24,6 +24,15 @@ from camel.messages import (
 from camel.prompts import CodePrompt, TextPrompt
 from camel.typing import ModelType, RoleType
 
+try:
+    from openai.types.chat.chat_completion_message_tool_call import ChatCompletionMessageToolCall
+    from openai.types.chat.chat_completion_message import FunctionCall
+    
+    # Legacy for logging support
+    openai_new_api = False  # new openai api version
+except ImportError:
+    openai_new_api = False  # old openai api version
+
 
 @dataclass
 class BaseMessage:
@@ -44,6 +53,9 @@ class BaseMessage:
     meta_dict: Optional[Dict[str, str]]
     role: str
     content: str
+    if openai_new_api:
+        function_call: Optional[FunctionCall] = None
+        tool_calls: Optional[ChatCompletionMessageToolCall] = None
 
     def __getattribute__(self, name: str) -> Any:
         r"""Get attribute override to delegate string methods to the

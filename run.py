@@ -24,6 +24,19 @@ sys.path.append(root)
 
 from chatdev.chat_chain import ChatChain
 
+try:
+    from openai.types.chat.chat_completion_message_tool_call import ChatCompletionMessageToolCall
+    from openai.types.chat.chat_completion_message import FunctionCall
+
+    # TODO: For legacy logging
+    openai_new_api = False  # new openai api version
+except ImportError:
+    openai_new_api = False  # old openai api version
+    print(
+        "Warning: Your OpenAI version is outdated. \n "
+        "Please update as specified in requirement.txt. \n "
+        "The old API interface is deprecated and will no longer be supported.")
+
 
 def get_config(company):
     """
@@ -68,7 +81,7 @@ parser.add_argument('--task', type=str, default="Develop a basic Gomoku game.",
 parser.add_argument('--name', type=str, default="Gomoku",
                     help="Name of software, your software will be generated in WareHouse/name_org_timestamp")
 parser.add_argument('--model', type=str, default="GPT_3_5_TURBO",
-                    help="GPT Model, choose from {'GPT_3_5_TURBO','GPT_4','GPT_4_32K', 'GIGA'}")
+                    help="GPT Model, choose from {'GPT_3_5_TURBO','GPT_4','GPT_4_32K', 'GPT_4_TURBO', 'GIGA'}")
 parser.add_argument('--path', type=str, default="",
                     help="Your file directory, ChatDev will build upon your software in the Incremental mode")
 args = parser.parse_args()
@@ -81,7 +94,16 @@ os.environ['LANGCHAIN_PROJECT'] = f'{args.name} {time.time()}'
 #          Init ChatChain
 # ----------------------------------------
 config_path, config_phase_path, config_role_path = get_config(args.config)
-args2type = {'GPT_3_5_TURBO': ModelType.GPT_3_5_TURBO, 'GPT_4': ModelType.GPT_4, 'GPT_4_32K': ModelType.GPT_4_32k, 'GIGA': ModelType.GIGA}
+args2type = {'GPT_3_5_TURBO': ModelType.GPT_3_5_TURBO,
+             'GPT_4': ModelType.GPT_4,
+             'GPT_4_32K': ModelType.GPT_4_32k,
+             'GPT_4_TURBO': ModelType.GPT_4_TURBO,
+             'GPT_4_TURBO_V': ModelType.GPT_4_TURBO_V,
+             'GIGA': ModelType.GIGA
+             }
+if openai_new_api:
+    args2type['GPT_3_5_TURBO'] = ModelType.GPT_3_5_TURBO_NEW
+
 chat_chain = ChatChain(config_path=config_path,
                        config_phase_path=config_phase_path,
                        config_role_path=config_role_path,

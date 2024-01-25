@@ -94,9 +94,10 @@
     "Chief Creative Officer"
   ],
   "clear_structure": "True",
-  "brainstorming": "False",
   "gui_design": "True",
   "git_management": "False",
+  "web_spider": "False",
   "self_improve": "False",
-  "incremental_develop": "False"
+  "incremental_develop": "False",
+  "background_prompt": "ChatDev - это программная компания, работающая на основе нескольких интеллектуальных агентов, таких как chief executive officer, chief human resources officer, chief product officer, chief technology officer и т.д., с многоагентной организационной структурой и миссией \"изменение цифрового мира через программирование\"."
 }
