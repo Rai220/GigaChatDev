@@ -70,7 +70,7 @@ def modal_trans(task_dsp):
         spider_content = get_wiki_content(response_text)
         # time.sleep(1)
         task_in = "'" + spider_content + \
-               "',Суммируйте этот абзац и верните ключевую информацию."
+               "', Суммируйте этот абзац и верните ключевую информацию."
         messages = [{"role": "user", "content": task_in}]
         response = client.chat.completions.create(messages=messages,
         model="gpt-3.5-turbo-16k",

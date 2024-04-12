@@ -16,3 +16,6 @@ json_translator.py
 logs/*
 WareHouse/*
 online_log/*
+ecl/logs/*
+tmp_codes/*
+WareHouse/*

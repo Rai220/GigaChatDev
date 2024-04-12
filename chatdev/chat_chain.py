@@ -70,7 +70,9 @@ class ChatChain:
                                              gui_design=check_bool(self.config["gui_design"]),
                                              git_management=check_bool(self.config["git_management"]),
                                              incremental_develop=check_bool(self.config["incremental_develop"]),
-                                             background_prompt=self.config["background_prompt"])
+                                             background_prompt=self.config["background_prompt"],
+                                             with_memory=check_bool(self.config["with_memory"]))
+                                             
         self.chat_env = ChatEnv(self.chat_env_config)
 
         # the user input prompt will be self-improved (if set "self_improve": "True" in ChatChainConfig.json)
@@ -204,6 +206,9 @@ class ChatChain:
         software_path = os.path.join(directory, "_".join([self.project_name, self.org_name, self.start_time]))
         self.chat_env.set_directory(software_path)
 
+        if self.chat_env.config.with_memory is True:
+            self.chat_env.init_memory()
+
         # copy config files to software path
         shutil.copy(self.config_path, software_path)
         shutil.copy(self.config_phase_path, software_path)
@@ -328,21 +333,21 @@ class ChatChain:
             revised_task_prompt: revised prompt from the prompt engineer agent
 
         """
-        self_task_improve_prompt = """I will give you a short description of a software design requirement, 
-please rewrite it into a detailed prompt that can make large language model know how to make this software better based this prompt,
-the prompt should ensure LLMs build a software that can be run correctly, which is the most import part you need to consider.
-remember that the revised prompt should not contain more than 200 words, 
-here is the short description:\"{}\". 
-If the revised prompt is revised_version_of_the_description, 
-then you should return a message in a format like \"<INFO> revised_version_of_the_description\", do not return messages in other formats.""".format(
+        self_task_improve_prompt = """Я дам вам краткое описание требования к программному обеспечению,
+        пожалуйста, перепишите его в подробный запрос, который позволит большой языковой модели знать, как улучшить это программное обеспечение на основе этого запроса.
+        Запрос должен гарантировать, что LLM построит программное обеспечение, которое может быть правильно запущено, что является самой важной частью, которую вам нужно учесть.
+        Помните, что переработанный запрос не должен содержать более 200 слов,
+        вот краткое описание:\"{}\".
+        Если переработанный запрос - revised_version_of_the_description,
+        тогда вы должны вернуть сообщение в формате \"<INFO> revised_version_of_the_description\", не возвращайте сообщения в других форматах.""".format(
             task_prompt)
         role_play_session = RolePlaying(
             assistant_role_name="Prompt Engineer",
-            assistant_role_prompt="You are an professional prompt engineer that can improve user input prompt to make LLM better understand these prompts.",
-            user_role_prompt="You are an user that want to use LLM to build software.",
+            assistant_role_prompt="Вы являетесь профессиональным промпт-инженером, который может улучшить ввод пользователя, чтобы LLM лучше понимал эти промпты.",
+            user_role_prompt="Вы - пользователь, который хочет использовать LLM для создания программного обеспечения.",
             user_role_name="User",
             task_type=TaskType.CHATDEV,
-            task_prompt="Do prompt engineering on user query",
+            task_prompt="Выполни промпт-инжениринг пользовательского запроса",
             with_task_specify=False,
             model_type=self.model_type,
         )

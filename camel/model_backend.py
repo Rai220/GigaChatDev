@@ -56,8 +56,10 @@ class Wrapper:
 
         with open(f"logs/{os.environ['LANGCHAIN_PROJECT']}.jsonl", "a", encoding="utf-8") as f:
             to_write = {"request": rq, "response": rsp}
-            to_write["request"]["api_key"] = "sk-..."
-            to_write["response"]["api_key"] = "sk-..."
+            if "api_key" in to_write["request"]:
+                to_write["request"]["api_key"] = "sk-..."
+            if "api_key" in to_write["response"]:
+                to_write["response"]["api_key"] = "sk-..."
             f.write(str(json.dumps(to_write, ensure_ascii=False, indent=4)) + "\n")
 
 
@@ -225,9 +227,9 @@ class GigaModel(ModelBackend):
         self.giga = GigaChat(
             verify_ssl_certs=False,
             profanity=False,
-            # base_url="https://beta.saluteai.sberdevices.ru/v1/",
-            base_url="https://wmapi-ift.saluteai-pd.sberdevices.ru/v1/",
-            model="GigaChat-29b-8k",
+            base_url="https://beta.saluteai.sberdevices.ru/v1/",
+            # base_url="https://wmapi-ift.saluteai-pd.sberdevices.ru/v1/",
+            model="GigaChat-Pro",
             profanity_check=False,
             # temperature=1.0,
             max_tokens=2000,
