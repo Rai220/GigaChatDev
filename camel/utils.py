@@ -90,6 +90,7 @@ def num_tokens_from_messages(
         ModelType.GPT_3_5_TURBO,
         ModelType.GPT_3_5_TURBO_NEW,
         ModelType.GPT_4,
+        ModelType.GPT_4_O,
         ModelType.GPT_4_32k,
         ModelType.GPT_4_TURBO,
         ModelType.GPT_4_TURBO_V,
@@ -127,6 +128,8 @@ def get_model_token_limit(model: ModelType) -> int:
     elif model == ModelType.GIGA:
         return 16384
     elif model == ModelType.GPT_4_TURBO:
+        return 128000
+    elif model == ModelType.GPT_4_O:
         return 128000
     elif model == ModelType.STUB:
         return 4096

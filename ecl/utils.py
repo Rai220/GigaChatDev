@@ -65,6 +65,7 @@ def calc_max_token(messages, model):
         "gpt-4": 8192,
         "gpt-4-0613": 8192,
         "gpt-4-32k": 32768,
+        "gpt-4o": 128000,
     }
     num_max_token = num_max_token_map[model]
     num_max_completion_tokens = num_max_token - num_prompt_tokens

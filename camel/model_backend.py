@@ -117,6 +117,7 @@ class OpenAIModel(ModelBackend):
 
     def run(self, *args, **kwargs):
         string = "\n".join([message["content"] for message in kwargs["messages"]])
+
         encoding = tiktoken.encoding_for_model(self.model_type.value)
         # encoding = tiktoken.encoding_for_model("cl100k_base")
         num_prompt_tokens = len(encoding.encode(string))
@@ -143,6 +144,7 @@ class OpenAIModel(ModelBackend):
                 "gpt-3.5-turbo-0613": 4096,
                 "gpt-3.5-turbo-16k-0613": 16384,
                 "gpt-4": 8192,
+                "gpt-4o": 128000,
                 "gpt-4-0613": 8192,
                 "gpt-4-32k": 32768,
                 "gpt-4-1106-preview": 4096,
@@ -177,7 +179,8 @@ class OpenAIModel(ModelBackend):
                 "gpt-4": 8192,
                 "gpt-4-0613": 8192,
                 "gpt-4-32k": 32768,
-                "gpt-4-1106-preview": 4096,
+                "gpt-4-turbo": 128000,
+                "gpt-4o": 128000,
             }
             num_max_token = num_max_token_map[self.model_type.value]
             num_max_completion_tokens = num_max_token - num_prompt_tokens
@@ -336,6 +339,7 @@ class ModelFactory:
             ModelType.GPT_3_5_TURBO,
             ModelType.GPT_3_5_TURBO_NEW,
             ModelType.GPT_4,
+            ModelType.GPT_4_O,
             ModelType.GPT_4_32k,
             ModelType.GPT_4_TURBO,
             ModelType.GPT_4_TURBO_V,

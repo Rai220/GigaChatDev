@@ -99,6 +99,7 @@ args2type = {'GPT_3_5_TURBO': ModelType.GPT_3_5_TURBO,
              'GPT_4_32K': ModelType.GPT_4_32k,
              'GPT_4_TURBO': ModelType.GPT_4_TURBO,
              'GPT_4_TURBO_V': ModelType.GPT_4_TURBO_V,
+             'GPT_4_O': ModelType.GPT_4_O,
              'GIGA': ModelType.GIGA
              }
 if openai_new_api:
