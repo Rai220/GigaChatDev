@@ -6,7 +6,9 @@ import subprocess
 import time
 from typing import Dict
 
-import openai
+from openai import OpenAI
+
+client = OpenAI()
 import requests
 
 from chatdev.codes import Codes
@@ -97,7 +99,7 @@ class ChatEnv:
             print("{} Created".format(directory))
         else:
             os.mkdir(self.env_dict['directory'])
-    
+
     def init_memory(self):
         self.memory.id_enabled = True
         self.memory.directory = os.path.join(os.getcwd(),"ecl","memory")
@@ -248,12 +250,10 @@ class ChatEnv:
                     )
                     image_url = response.data[0].url
                 else:
-                    response = openai.Image.create(
-                        prompt=desc,
-                        n=1,
-                        size="256x256"
-                    )
-                    image_url = response['data'][0]['url']
+                    response = client.images.generate(prompt=desc,
+                    n=1,
+                    size="256x256")
+                    image_url = response.data[0].url
                 download(image_url, filename)
 
     def get_proposed_images_from_message(self, messages):
@@ -299,12 +299,10 @@ class ChatEnv:
                     )
                     image_url = response.data[0].url
                 else:
-                    response = openai.Image.create(
-                        prompt=desc,
-                        n=1,
-                        size="256x256"
-                    )
-                    image_url = response['data'][0]['url']
+                    response = client.images.generate(prompt=desc,
+                    n=1,
+                    size="256x256")
+                    image_url = response.data[0].url
 
                 download(image_url, filename)
 

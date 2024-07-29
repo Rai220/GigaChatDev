@@ -230,7 +230,7 @@ class GigaModel(ModelBackend):
         self.giga = GigaChat(
             verify_ssl_certs=False,
             profanity=False,
-            base_url="https://beta.saluteai.sberdevices.ru/v1/",
+            base_url="https://wmapi-ift.saluteai-pd.sberdevices.ru/v1/",
             # base_url="https://wmapi-ift.saluteai-pd.sberdevices.ru/v1/",
             model="GigaChat-Pro",
             profanity_check=False,
