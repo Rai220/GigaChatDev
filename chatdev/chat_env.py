@@ -5,8 +5,10 @@ import signal
 import subprocess
 import time
 from typing import Dict
-
+import mss
+import openai
 from openai import OpenAI
+import base64
 
 client = OpenAI()
 import requests
@@ -71,7 +73,9 @@ class ChatEnv:
             "language": "",
             "review_comments": "",
             "error_summary": "",
-            "test_reports": ""
+            "test_reports": "",
+            "ui_test_reports": "",
+            "ui_error_summary": ""
         }
 
     @staticmethod
@@ -158,6 +162,107 @@ class ChatEnv:
             return True, f"An error occurred: {ex}"
 
         return False, success_info
+
+
+    def exist_ui_bugs(self) -> tuple[bool, str]:
+
+        def get_ui_errors_description_from_image(image_path) -> str:
+
+            def encode_image(image_path):
+                with open(image_path, "rb") as image_file:
+                    return base64.b64encode(image_file.read()).decode('utf-8')
+                        
+            base64_image = encode_image(image_path)
+
+            headers = {
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {os.environ['OPENAI_API_KEY']}"
+            }
+
+            payload = {
+                "model": "gpt-4o-mini",
+                "messages": [
+                    {
+                    "role": "user",
+                    "content": [
+                        {
+                        "type": "text",
+                        "text": f"You are Software UI Test Engineer. You can use the software as intended to analyze its functional properties, design manual and automated test procedures to evaluate each software product, build and implement software evaluation test programs, and run test programs to ensure that testing protocols evaluate the software correctly. The user's task was {self.env_dict['task_prompt']}. You have a photo of the application's start window. Find the app itself on it and rate it only! Check carefully that it meets the user's requirements. If there is something missing on the start window of the application, be sure to point it out. Be specific. don't offer too complicated ideas, focus on the essence of the program."
+                        },
+                        {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:image/jpeg;base64,{base64_image}"
+                        }
+                        }
+                    ]
+                    }
+            ],
+            "max_tokens": 500
+            }
+
+            response = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json=payload)
+
+            return response.json()['choices'][0]['message']['content']
+        
+        directory = self.env_dict['directory']
+
+        success_info = "The software run successfully without errors."
+        try:
+
+            # check if we are on windows or linux
+            if os.name == 'nt':
+                command = "cd {} && dir && python main.py".format(directory)
+                process = subprocess.Popen(
+                    command,
+                    shell=True,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    creationflags=subprocess.CREATE_NEW_PROCESS_GROUP
+                )
+            else:
+                command = "cd {}; ls -l; python3 main.py;".format(directory)
+                process = subprocess.Popen(command,
+                                           shell=True,
+                                           preexec_fn=os.setsid,
+                                           stdout=subprocess.PIPE,
+                                           stderr=subprocess.PIPE
+                                           )
+            time.sleep(1)
+            # make screenshot
+            screenshot_path = os.path.join(self.env_dict['directory'], 'screenshot.png')
+            with mss.mss() as sct:
+                sct.shot(output=screenshot_path) 
+
+            return_code = process.returncode
+            # Check if the software is still running
+            if process.poll() is None:
+                if "killpg" in dir(os):
+                    os.killpg(os.getpgid(process.pid), signal.SIGTERM)
+                else:
+                    os.kill(process.pid, signal.SIGTERM)
+                    if process.poll() is None:
+                        os.kill(process.pid, signal.CTRL_BREAK_EVENT)
+
+            if return_code == 0:
+                ui_info = get_ui_errors_description_from_image(screenshot_path)
+                return False, ui_info
+            else:
+                error_output = process.stderr.read().decode('utf-8')
+                if error_output:
+                    if "Traceback".lower() in error_output.lower():
+                        errs = error_output.replace(directory + "/", "")
+                        return True, errs
+                else:
+                    ui_info = get_ui_errors_description_from_image(screenshot_path)
+                    return False, ui_info
+        except subprocess.CalledProcessError as e:
+            return True, f"Error: {e}"
+        except Exception as ex:
+            return True, f"An error occurred: {ex}"
+
+        ui_info = get_ui_errors_description_from_image(screenshot_path)
+        return False, ui_info
 
     def recruit(self, agent_name: str):
         self.roster._recruit(agent_name)

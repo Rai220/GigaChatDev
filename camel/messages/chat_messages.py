@@ -15,7 +15,7 @@ from dataclasses import dataclass
 from typing import Dict, Optional
 
 from camel.messages import BaseMessage
-from camel.typing import RoleType
+from camel.typing_c import RoleType
 
 try:
     from openai.types.chat.chat_completion_message_tool_call import ChatCompletionMessageToolCall
@@ -45,6 +45,7 @@ class ChatMessage(BaseMessage):
     meta_dict: Optional[Dict[str, str]]
     role: str
     content: str = ""
+    refusal: str = None
     if openai_new_api:
         function_call: Optional[FunctionCall] = None
         tool_calls: Optional[ChatCompletionMessageToolCall] = None

@@ -22,7 +22,7 @@ from langchain.schema import HumanMessage, SystemMessage, AIMessage
 import time
 from langchain.adapters.openai import *
 
-from camel.typing import ModelType
+from camel.typing_c import ModelType
 from chatdev.statistics import prompt_cost
 from chatdev.utils import log_visualize
 
@@ -125,7 +125,7 @@ class OpenAIModel(ModelBackend):
         num_prompt_tokens += gap_between_send_receive
 
         # TODO: Legacy logging support
-        openai_new_api = False
+        # openai_new_api = False
         if openai_new_api:
             # Experimental, add base_url
             if BASE_URL:
@@ -149,6 +149,7 @@ class OpenAIModel(ModelBackend):
                 "gpt-4-32k": 32768,
                 "gpt-4-1106-preview": 4096,
                 "gpt-4-1106-vision-preview": 4096,
+                "gpt-4o-mini": 16384,
             }
             num_max_token = num_max_token_map[self.model_type.value]
             num_max_completion_tokens = num_max_token - num_prompt_tokens
@@ -156,7 +157,6 @@ class OpenAIModel(ModelBackend):
 
             response = client.chat.completions.create(*args, **kwargs, model=self.model_type.value,
                                                       **self.model_config_dict)
-
             cost = prompt_cost(
                 self.model_type.value,
                 num_prompt_tokens=response.usage.prompt_tokens,
@@ -181,6 +181,7 @@ class OpenAIModel(ModelBackend):
                 "gpt-4-32k": 32768,
                 "gpt-4-turbo": 128000,
                 "gpt-4o": 128000,
+                "gpt-4o-mini": 16384,
             }
             num_max_token = num_max_token_map[self.model_type.value]
             num_max_completion_tokens = num_max_token - num_prompt_tokens
@@ -333,7 +334,7 @@ class ModelFactory:
 
     @staticmethod
     def create(model_type: ModelType, model_config_dict: Dict) -> ModelBackend:
-        default_model_type = ModelType.GIGA
+        default_model_type = ModelType.GPT_4O_MINI
 
         if model_type in {
             ModelType.GPT_3_5_TURBO,
@@ -343,6 +344,7 @@ class ModelFactory:
             ModelType.GPT_4_32k,
             ModelType.GPT_4_TURBO,
             ModelType.GPT_4_TURBO_V,
+            ModelType.GPT_4O_MINI,
             None
         }:
             model_class = OpenAIModel
