@@ -187,7 +187,7 @@ class ChatEnv:
                     "content": [
                         {
                         "type": "text",
-                        "text": f"You are Software UI Test Engineer. You can use the software as intended to analyze its functional properties, design manual and automated test procedures to evaluate each software product, build and implement software evaluation test programs, and run test programs to ensure that testing protocols evaluate the software correctly. The user's task was {self.env_dict['task_prompt']}. You have a photo of the application's start window. Find the app itself on it and rate it only! Check carefully that it meets the user's requirements. If there is something missing on the start window of the application, be sure to point it out. Be specific. don't offer too complicated ideas, focus on the essence of the program."
+                        "text": f"You are Software UI Test Engineer. You can use the software as intended to analyze its functional properties, design manual and automated test procedures to evaluate each software product, build and implement software evaluation test programs, and run test programs to ensure that testing protocols evaluate the software correctly. The user's task was {self.env_dict['task_prompt']}. You have a photo of the application's start window. Find the app itself on it and rate it only! Check carefully that it meets the user's requirements. If there is something missing on the start window of the application, be sure to point it out. Be specific. don't offer too complicated ideas, focus on the essence of the program. Answer in Russian."
                         },
                         {
                         "type": "image_url",

@@ -65,6 +65,42 @@
             ]
         },
         {
+            "phase": "UITest",
+            "phaseType": "ComposedPhase",
+            "cycleNum": 2,
+            "Composition": [{
+                    "phase": "UITestErrorSummary",
+                    "phaseType": "SimplePhase",
+                    "max_turn_step": 1,
+                    "need_reflect": "False"
+                },
+                {
+                    "phase": "UITestModification",
+                    "phaseType": "SimplePhase",
+                    "max_turn_step": 1,
+                    "need_reflect": "False"
+                }
+            ]
+        },
+        {
+            "phase": "Test",
+            "phaseType": "ComposedPhase",
+            "cycleNum": 2,
+            "Composition": [{
+                    "phase": "TestErrorSummary",
+                    "phaseType": "SimplePhase",
+                    "max_turn_step": 1,
+                    "need_reflect": "False"
+                },
+                {
+                    "phase": "TestModification",
+                    "phaseType": "SimplePhase",
+                    "max_turn_step": 1,
+                    "need_reflect": "False"
+                }
+            ]
+        },
+        {
             "phase": "EnvironmentDoc",
             "phaseType": "SimplePhase",
             "max_turn_step": 1,
@@ -86,6 +122,7 @@
         "Programmer",
         "Code Reviewer",
         "Software Test Engineer",
+        "Software UI Test Engineer",
         "Chief Creative Officer"
     ],
     "clear_structure": "True",
