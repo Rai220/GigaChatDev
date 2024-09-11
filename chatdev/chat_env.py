@@ -10,6 +10,13 @@ import openai
 from openai import OpenAI
 import base64
 
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.messages import HumanMessage, SystemMessage
+from operator import itemgetter
+from langchain_core.runnables import RunnableLambda
+from langchain_openai import ChatOpenAI
+
 client = OpenAI()
 import requests
 
@@ -135,6 +142,14 @@ class ChatEnv:
                                            stdout=subprocess.PIPE,
                                            stderr=subprocess.PIPE
                                            )
+                
+            # time.sleep(1)
+            # # make screenshot
+            # timestamp = str(time.time())
+            # screenshot_path = os.path.join(self.env_dict['directory'], f'screenshot_{timestamp}.png')
+            # with mss.mss() as sct:
+            #     sct.shot(output=screenshot_path) 
+
             time.sleep(3)
             return_code = process.returncode
             # Check if the software is still running
@@ -166,44 +181,61 @@ class ChatEnv:
 
     def exist_ui_bugs(self) -> tuple[bool, str]:
 
-        def get_ui_errors_description_from_image(image_path) -> str:
 
-            def encode_image(image_path):
-                with open(image_path, "rb") as image_file:
-                    return base64.b64encode(image_file.read()).decode('utf-8')
-                        
+        def encode_image(image_path):
+            with open(image_path, "rb") as image_file:
+                return base64.b64encode(image_file.read()).decode('utf-8')
+
+
+        def generate_checking_requirements_prompt(param_dict: dict):
+            system_message = "Ты Software Test Engineer. Твоя задача — проверить, соответствует ли стартовая страница приложения следующим требованиям, которые даст пользователь. Обрати анимание, что тебе будет дано изображене только стартовой страницы, ты сможешь оценить только её! То, что ты не сможешь оценить, не оценивай! Твоя задача по пунктвм выписать, что соответствует, что не соответствует, а про что ты не можешь точно сказать, так как видишь только стартовую страницу."
+            human_messages = [
+                {
+                    "type" : "text",
+                    "text" : f"{param_dict['question']}",
+                },
+                {
+                    "type" : "image_url",
+                    "image_url" : {
+                        "url" : f"{param_dict['image_url']}",
+                    }
+                }
+            ]
+
+            return [SystemMessage(content=system_message), HumanMessage(content=human_messages)]
+        
+
+        def create_clarifing_chain():
+            model = ChatOpenAI(model="gpt-4o-mini", temperature=0)
+            clarifing_prompt_template = """Ты Software Test Engineer. Твоя задача — составить и по пунктам расписать чёткие требования, которые необходимо будет проверить на стартовой странице приложения, к которому пользователь задал следующие требования: {task}.
+
+Сначала сформулируй шаги для проверки соответствия. Для этого:
+
+- Разбей требования пользователя на отдельные атомарные пункты. Каждый пункт должен описывать конкретный элемент интерфейса или функцию, которую нужно проверить (например, наличие конкретной кнопки, поля для ввода пользовательского запроса, цвета, положения элементов и т.д.).
+- Представь результат в виде списка шагов, где каждый шаг описывает одно конкретное действие для проверки соответствия. Важно, что действия должны быть выполнимы при взгляде только на уже открытую стартовую страницу экрана, нажимать на кнопки нельзя. Тебе нужно подробно расписать, что должно быть на стартовой странице. Фокусируйся на самом приложении!"""
+
+            clarifing_prompt = ChatPromptTemplate.from_template(clarifing_prompt_template)
+
+            clarifing_chain = clarifing_prompt | model | StrOutputParser()
+            
+            return clarifing_chain
+
+
+        def get_ui_errors_description_from_image(image_path) -> str:
+            clarifing_chain = create_clarifing_chain()
+            model = ChatOpenAI(model="gpt-4o-mini", temperature=0)
+            checking_requirements_chain = {
+                    "question": clarifing_chain,
+                    "image_url": itemgetter("image_url")
+                } | RunnableLambda(generate_checking_requirements_prompt) | model | StrOutputParser()
+
             base64_image = encode_image(image_path)
 
-            headers = {
-                "Content-Type": "application/json",
-                "Authorization": f"Bearer {os.environ['OPENAI_API_KEY']}"
-            }
+            response = checking_requirements_chain.invoke({
+                'task': {self.env_dict['task_prompt']},
+                "image_url": f"data:image/jpeg;base64,{base64_image}"})
 
-            payload = {
-                "model": "gpt-4o-mini",
-                "messages": [
-                    {
-                    "role": "user",
-                    "content": [
-                        {
-                        "type": "text",
-                        "text": f"You are Software UI Test Engineer. You can use the software as intended to analyze its functional properties, design manual and automated test procedures to evaluate each software product, build and implement software evaluation test programs, and run test programs to ensure that testing protocols evaluate the software correctly. The user's task was {self.env_dict['task_prompt']}. You have a photo of the application's start window. Find the app itself on it and rate it only! Check carefully that it meets the user's requirements. If there is something missing on the start window of the application, be sure to point it out. Be specific. don't offer too complicated ideas, focus on the essence of the program. Answer in Russian."
-                        },
-                        {
-                        "type": "image_url",
-                        "image_url": {
-                            "url": f"data:image/jpeg;base64,{base64_image}"
-                        }
-                        }
-                    ]
-                    }
-            ],
-            "max_tokens": 500
-            }
-
-            response = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json=payload)
-
-            return response.json()['choices'][0]['message']['content']
+            return response
         
         directory = self.env_dict['directory']
 
