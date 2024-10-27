@@ -8,7 +8,7 @@ from datetime import datetime
 
 from camel.agents import RolePlaying
 from camel.configs import ChatGPTConfig
-from camel.typing import TaskType, ModelType
+from camel.typing_c import TaskType, ModelType
 from chatdev.chat_env import ChatEnv, ChatEnvConfig
 from chatdev.statistics import get_info
 from camel.web_spider import modal_trans
@@ -28,7 +28,7 @@ class ChatChain:
                  task_prompt: str = None,
                  project_name: str = None,
                  org_name: str = None,
-                 model_type: ModelType = ModelType.GPT_3_5_TURBO,
+                 model_type: ModelType = ModelType.GPT_4O_MINI,
                  code_path: str = None) -> None:
         """
 

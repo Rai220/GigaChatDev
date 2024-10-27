@@ -22,7 +22,7 @@ from camel.messages import (
     OpenAIUserMessage,
 )
 from camel.prompts import CodePrompt, TextPrompt
-from camel.typing import ModelType, RoleType
+from camel.typing_c import ModelType, RoleType
 
 try:
     from openai.types.chat.chat_completion_message_tool_call import ChatCompletionMessageToolCall
@@ -187,12 +187,12 @@ class BaseMessage:
         """
         return item in self.content
 
-    def token_len(self, model: ModelType = ModelType.GPT_3_5_TURBO) -> int:
+    def token_len(self, model: ModelType = ModelType.GPT_4O_MINI) -> int:
         r"""Calculate the token length of the message for the specified model.
 
         Args:
             model (ModelType, optional): The model type to calculate the token
-                length. (default: :obj:`ModelType.GPT_3_5_TURBO`)
+                length. (default: :obj:`ModelType.GPT_4O_MINI`)
 
         Returns:
             int: The token length of the message.

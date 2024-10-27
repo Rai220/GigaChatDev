@@ -15,7 +15,7 @@ from typing import Dict, Generator, List, Optional, Set, Tuple
 
 from camel.messages import SystemMessage, SystemMessageType
 from camel.prompts import PromptTemplateGenerator, TextPrompt
-from camel.typing import RoleType, TaskType
+from camel.typing_c import RoleType, TaskType
 
 
 class SystemMessageGenerator:
@@ -53,6 +53,7 @@ class SystemMessageGenerator:
             programmer_prompt_template = templates.get_system_prompt(task_type, RoleType.CHATDEV_PROGRAMMER)
             reviewer_prompt_template = templates.get_system_prompt(task_type, RoleType.CHATDEV_REVIEWER)
             tester_prompt_template = templates.get_system_prompt(task_type, RoleType.CHATDEV_TESTER)
+            ui_tester_prompt_template = templates.get_system_prompt(task_type, RoleType.CHATDEV_UI_TESTER)
             cco_prompt_template = templates.get_system_prompt(task_type, RoleType.CHATDEV_CCO)
 
             self.sys_prompts = dict()
@@ -65,6 +66,7 @@ class SystemMessageGenerator:
             self.sys_prompts[RoleType.CHATDEV_PROGRAMMER] = programmer_prompt_template
             self.sys_prompts[RoleType.CHATDEV_REVIEWER] = reviewer_prompt_template
             self.sys_prompts[RoleType.CHATDEV_TESTER] = tester_prompt_template
+            self.sys_prompts[RoleType.CHATDEV_UI_TESTER] = ui_tester_prompt_template
             self.sys_prompts[RoleType.CHATDEV_CCO] = cco_prompt_template
 
             self.sys_msg_meta_dict_keys = (agenttech_prompt_template.key_words |
@@ -76,6 +78,7 @@ class SystemMessageGenerator:
                                            programmer_prompt_template.key_words |
                                            reviewer_prompt_template.key_words |
                                            tester_prompt_template.key_words |
+                                           ui_tester_prompt_template.key_words |
                                            cco_prompt_template.key_words)
 
         if RoleType.DEFAULT not in self.sys_prompts:

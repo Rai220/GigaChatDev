@@ -40,6 +40,7 @@ class RoleType(Enum):
     CHATDEV_PROGRAMMER = "programmer"
     CHATDEV_REVIEWER = "code reviewer"
     CHATDEV_TESTER = "software test engineer"
+    CHATDEV_UI_TESTER = "software ui test engineer"
     CHATDEV_CCO = "chief creative officer (CCO)"
 
 
@@ -52,12 +53,13 @@ class ModelType(Enum):
     GPT_4_TURBO_V = "gpt-4-turbo"
     GPT_4_O= "gpt-4o"
     GIGA = "giga"
+    GPT_4O_MINI = "gpt-4o-mini"
 
     STUB = "stub"
 
     @property
     def value_for_tiktoken(self):
-        return self.value if self.name != "STUB" else "gpt-3.5-turbo-16k-0613"
+        return self.value if self.name != "STUB" else "gpt-4o-mini"
         # return "cl100k_base"
 
 
@@ -71,6 +73,7 @@ class PhaseType(Enum):
     RECRUITING_PROGRAMMER = "recruiting programmer"
     RECRUITING_REVIEWER = "recruiting reviewer"
     RECRUITING_TESTER = "recruiting software test engineer"
+    RECRUITING_UI_TESTER = "recruiting software ui test engineer"
     RECRUITING_CCO = "recruiting chief creative officer"
     CODING = "coding"
     CODING_COMPLETION = "coding completion"

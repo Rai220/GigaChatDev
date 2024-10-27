@@ -20,7 +20,7 @@ from colorama import Fore
 
 from camel.agents import ChatAgent
 from camel.messages import ChatMessage, SystemMessage
-from camel.typing import ModelType
+from camel.typing_c import ModelType
 from camel.utils import get_first_int, print_text_animated
 
 
@@ -31,7 +31,7 @@ class CriticAgent(ChatAgent):
         system_message (SystemMessage): The system message for the critic
             agent.
         model (ModelType, optional): The LLM model to use for generating
-            responses. (default :obj:`ModelType.GPT_3_5_TURBO`)
+            responses. (default :obj:`ModelType.GPT_4O_MINI`)
         model_config (Any, optional): Configuration options for the LLM model.
             (default: :obj:`None`)
         message_window_size (int, optional): The maximum number of previous
@@ -47,7 +47,7 @@ class CriticAgent(ChatAgent):
     def __init__(
         self,
         system_message: SystemMessage,
-        model: ModelType = ModelType.GPT_3_5_TURBO,
+        model: ModelType = ModelType.GPT_4O_MINI,
         model_config: Optional[Any] = None,
         message_window_size: int = 6,
         retry_attempts: int = 2,

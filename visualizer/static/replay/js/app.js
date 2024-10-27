@@ -48,6 +48,13 @@ coordSet["Software Test Engineer"] = {
     "left": "470px"
 
 }
+coordSet["Software UI Test Engineer"] = {
+    "character": "Software UI Test Engineer",
+    "imgid": "right",
+    "top": "-90px",
+    "left": "470px"
+
+}
 coordSet["User"] = {
     "character": "User",
     "imgid": "left",
@@ -432,6 +439,8 @@ function createPara(d, i) {
             characterimg.src = "figures/designer.png";
         } else if (d.character == "Software Test Engineer") {
             characterimg.src = "figures/tester.png";
+        } else if (d.character == "Software UI Test Engineer") {
+            characterimg.src = "figures/ui_tester.png";
         } else if (d.character == "User") {
             characterimg.src = "figures/user.png";
         } else if (d.character == "Counselor") {

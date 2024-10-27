@@ -22,7 +22,7 @@ from camel.agents import BaseAgent
 from camel.configs import ChatGPTConfig
 from camel.messages import ChatMessage, MessageType, SystemMessage
 from camel.model_backend import ModelBackend, ModelFactory
-from camel.typing import ModelType, RoleType
+from camel.typing_c import ModelType, RoleType
 from camel.utils import (
     get_model_token_limit,
     num_tokens_from_messages,
@@ -76,7 +76,7 @@ class ChatAgent(BaseAgent):
         system_message (SystemMessage): The system message for the chat agent.
         with_memory(bool): The memory setting of the chat agent.
         model (ModelType, optional): The LLM model to use for generating
-            responses. (default :obj:`ModelType.GPT_3_5_TURBO`)
+            responses. (default :obj:`ModelType.GPT_4O_MINI`)
         model_config (Any, optional): Configuration options for the LLM model.
             (default: :obj:`None`)
         message_window_size (int, optional): The maximum number of previous
@@ -96,7 +96,7 @@ class ChatAgent(BaseAgent):
         self.system_message: SystemMessage = system_message
         self.role_name: str = system_message.role_name
         self.role_type: RoleType = system_message.role_type
-        self.model: ModelType = (model if model is not None else ModelType.GPT_3_5_TURBO)
+        self.model: ModelType = (model if model is not None else ModelType.GPT_4O_MINI)
         self.model_config: ChatGPTConfig = model_config or ChatGPTConfig()
         self.model_token_limit: int = get_model_token_limit(self.model)
         self.message_window_size: Optional[int] = message_window_size

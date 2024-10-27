@@ -16,7 +16,7 @@ from typing import Any, Dict
 from camel.prompts import (
     TextPromptDict,
 )
-from camel.typing import TaskType
+from camel.typing_c import TaskType
 
 
 class TaskPromptTemplateDict(Dict[Any, TextPromptDict]):

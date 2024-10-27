@@ -17,7 +17,7 @@ import os
 import sys
 import time
 
-from camel.typing import ModelType
+from camel.typing_c import ModelType
 
 root = os.path.dirname(__file__)
 sys.path.append(root)
@@ -80,8 +80,8 @@ parser.add_argument('--task', type=str, default="Develop a basic Gomoku game.",
                     help="Prompt of software")
 parser.add_argument('--name', type=str, default="Gomoku",
                     help="Name of software, your software will be generated in WareHouse/name_org_timestamp")
-parser.add_argument('--model', type=str, default="GPT_3_5_TURBO",
-                    help="GPT Model, choose from {'GPT_3_5_TURBO','GPT_4','GPT_4_32K', 'GPT_4_TURBO', 'GIGA'}")
+parser.add_argument('--model', type=str, default="GPT_4O_MINI",
+                    help="GPT Model, choose from {'GPT_3_5_TURBO','GPT_4','GPT_4_32K', 'GPT_4_TURBO', 'GPT_4O_MINI', 'GIGA'}")
 parser.add_argument('--path', type=str, default="",
                     help="Your file directory, ChatDev will build upon your software in the Incremental mode")
 args = parser.parse_args()
@@ -100,6 +100,7 @@ args2type = {'GPT_3_5_TURBO': ModelType.GPT_3_5_TURBO,
              'GPT_4_TURBO': ModelType.GPT_4_TURBO,
              'GPT_4_TURBO_V': ModelType.GPT_4_TURBO_V,
              'GPT_4_O': ModelType.GPT_4_O,
+             'GPT_4O_MINI': ModelType.GPT_4O_MINI,
              'GIGA': ModelType.GIGA
              }
 if openai_new_api:

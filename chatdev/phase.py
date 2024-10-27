@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 
 from camel.agents import RolePlaying
 from camel.messages import ChatMessage
-from camel.typing import TaskType, ModelType
+from camel.typing_c import TaskType, ModelType
 from chatdev.chat_env import ChatEnv
 from chatdev.statistics import get_info
 from chatdev.utils import log_visualize, log_arguments
@@ -58,7 +58,7 @@ class Phase(ABC):
             task_type=TaskType.CHATDEV,
             need_reflect=False,
             with_task_specify=False,
-            model_type=ModelType.GPT_3_5_TURBO,
+            model_type=ModelType.GPT_4O_MINI,
             memory=None,
             placeholders=None,
             chat_turn_limit=10
@@ -205,16 +205,28 @@ class Phase(ABC):
         messages = ["{}: {}".format(message.role_name, message.content.replace("\n\n", "\n")) for message in messages]
         messages = "\n\n".join(messages)
 
-        if "recruiting" in phase_name:
-            question = """Ответь на их окончательный обсуждаемый вывод (Yes или No) в обсуждении без каких-либо других слов, например, "Yes" """
-        elif phase_name == "DemandAnalysis":
-            question = """Ответь на их окончательный тип продукта в обсуждении без каких-либо других слов, например, "PowerPoint" или "приложение" """
-        elif phase_name == "LanguageChoose":
-            question = """Подтверди выбор языка программирования для разработки программного обеспечения в формате: "*", где * - название языка программирования, например "python" """
-        elif phase_name == "EnvironmentDoc":
-            question = """Согласно кодам и формату файла, указанным выше, напиши файл requirements.txt, чтобы указать зависимости или пакеты, необходимые для правильной работы проекта."""
+        if self.model_type == ModelType.GIGA:
+            if "recruiting" in phase_name:
+                question = """Ответь на их окончательный обсуждаемый вывод (Yes или No) в обсуждении без каких-либо других слов, например, "Yes" """
+            elif phase_name == "DemandAnalysis":
+                question = """Ответь на их окончательный тип продукта в обсуждении без каких-либо других слов, например, "PowerPoint" или "приложение" """
+            elif phase_name == "LanguageChoose":
+                question = """Подтверди выбор языка программирования для разработки программного обеспечения в формате: "*", где * - название языка программирования, например "python" """
+            elif phase_name == "EnvironmentDoc":
+                question = """Согласно кодам и формату файла, указанным выше, напиши файл requirements.txt, чтобы указать зависимости или пакеты, необходимые для правильной работы проекта."""
+            else:
+                raise ValueError(f"Отражение фазы {phase_name}: Не назначено.")
         else:
-            raise ValueError(f"Отражение фазы {phase_name}: Не назначено.")
+            if "recruiting" in phase_name:
+                question = """Answer their final discussed conclusion (Yes or No) in the discussion without any other words, e.g., "Yes" """
+            elif phase_name == "DemandAnalysis":
+                question = """Answer their final product modality in the discussion without any other words, e.g., "PowerPoint" """
+            elif phase_name == "LanguageChoose":
+                question = """Conclude the programming language being discussed for software development, in the format: "*" where '*' represents a programming language." """
+            elif phase_name == "EnvironmentDoc":
+                question = """According to the codes and file format listed above, write a requirements.txt file to specify the dependencies or packages required for the project to run properly." """
+            else:
+                raise ValueError(f"Reflection of phase {phase_name}: Not Assigned.")
 
         # Reflections actually is a special phase between CEO and counselor
         # They read the whole chatting history of this phase and give refined conclusion of this phase
@@ -590,6 +602,45 @@ class TestErrorSummary(Phase):
         chat_env = self.update_chat_env(chat_env)
         return chat_env
 
+class UITestErrorSummary(Phase):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def update_phase_env(self, chat_env):
+        (exist_bugs_flag, ui_test_reports) = chat_env.exist_ui_bugs()
+        self.phase_env.update({"task": chat_env.env_dict['task_prompt'],
+                               "modality": chat_env.env_dict['modality'],
+                               "ideas": chat_env.env_dict['ideas'],
+                               "language": chat_env.env_dict['language'],
+                               "codes": chat_env.get_codes(),
+                               "test_reports": chat_env.env_dict['test_reports'],
+                               "ui_test_reports": ui_test_reports,
+                               "exist_bugs_flag": exist_bugs_flag})
+        log_visualize("**[UI Test Reports]**:\n\n{}".format(ui_test_reports))
+
+    def update_chat_env(self, chat_env) -> ChatEnv:
+        chat_env.env_dict['ui_error_summary'] = self.seminar_conclusion
+        chat_env.env_dict['ui_test_reports'] = self.phase_env['ui_test_reports']
+
+        return chat_env
+
+    def execute(self, chat_env, chat_turn_limit, need_reflect) -> ChatEnv:
+        self.update_phase_env(chat_env)
+        self.seminar_conclusion = \
+            self.chatting(chat_env=chat_env,
+                              task_prompt=chat_env.env_dict['task_prompt'],
+                              need_reflect=need_reflect,
+                              assistant_role_name=self.assistant_role_name,
+                              user_role_name=self.user_role_name,
+                              phase_prompt=self.phase_prompt,
+                              phase_name=self.phase_name,
+                              assistant_role_prompt=self.assistant_role_prompt,
+                              user_role_prompt=self.user_role_prompt,
+                              memory=chat_env.memory,
+                              chat_turn_limit=chat_turn_limit,
+                              placeholders=self.phase_env)
+        chat_env = self.update_chat_env(chat_env)
+        return chat_env
 
 class TestModification(Phase):
     def __init__(self, **kwargs):
@@ -613,6 +664,31 @@ class TestModification(Phase):
                 "**[Software Info]**:\n\n {}".format(get_info(chat_env.env_dict['directory'], self.log_filepath)))
         return chat_env
 
+class UITestModification(Phase):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def update_phase_env(self, chat_env):
+        self.phase_env.update({"task": chat_env.env_dict['task_prompt'],
+                               "modality": chat_env.env_dict['modality'],
+                               "ideas": chat_env.env_dict['ideas'],
+                               "language": chat_env.env_dict['language'],
+                               "test_reports": chat_env.env_dict['test_reports'],
+                               "ui_test_reports": chat_env.env_dict['ui_test_reports'],
+                               "error_summary": chat_env.env_dict['error_summary'],
+                               "ui_error_summary": chat_env.env_dict['ui_error_summary'],
+                               "codes": chat_env.get_codes()
+                               })
+
+    def update_chat_env(self, chat_env) -> ChatEnv:
+        if "```".lower() in self.seminar_conclusion.lower():
+            chat_env.update_codes(self.seminar_conclusion)
+            chat_env.rewrite_codes("UI Test #" + str(self.phase_env["cycle_index"]) + " Finished")
+            log_visualize(
+                "**[UI Software Info]**:\n\n {}".format(get_info(chat_env.env_dict['directory'], self.log_filepath)))
+        
+        self.phase_env['ui_modification_conclusion'] = self.seminar_conclusion
+        return chat_env
 
 class EnvironmentDoc(Phase):
     def __init__(self, **kwargs):

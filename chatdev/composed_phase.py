@@ -3,7 +3,7 @@ import os
 from abc import ABC, abstractmethod
 from collections import defaultdict
 
-from camel.typing import ModelType
+from camel.typing_c import ModelType
 from chatdev.chat_env import ChatEnv
 from chatdev.utils import log_visualize
 
@@ -19,7 +19,7 @@ class ComposedPhase(ABC):
                  composition: list = None,
                  config_phase: dict = None,
                  config_role: dict = None,
-                 model_type: ModelType = ModelType.GPT_3_5_TURBO,
+                 model_type: ModelType = ModelType.GPT_4O_MINI,
                  log_filepath: str = ""
                  ):
         """
@@ -247,6 +247,22 @@ class Test(ComposedPhase):
     def break_cycle(self, phase_env) -> bool:
         if not phase_env['exist_bugs_flag']:
             log_visualize(f"**[Test Info]**\n\nAI User (Software Test Engineer):\nTest Pass!\n")
+            return True
+        else:
+            return False
+
+class UITest(ComposedPhase):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def update_phase_env(self, chat_env):
+        self.phase_env.update({"ui_modification_conclusion": ""})
+
+    def update_chat_env(self, chat_env):
+        return chat_env
+
+    def break_cycle(self, phase_env) -> bool:
+        if "<INFO> Finished".lower() in phase_env['ui_modification_conclusion'].lower():
             return True
         else:
             return False
